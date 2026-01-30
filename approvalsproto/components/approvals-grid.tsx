@@ -2189,7 +2189,6 @@ export function ApprovalsGrid({
         payPeriodEndDate: 'Pay period end date',
         takeActionDeadline: 'Take action deadline',
         payRunMemo: 'Pay run memo',
-        jobTitle: 'Job title',
         workLocation: 'Work location',
         jobFamily: 'Job Family',
         changedBy: 'Changed by',
