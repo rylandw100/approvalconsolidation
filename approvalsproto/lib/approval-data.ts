@@ -830,7 +830,7 @@ export const generateApprovalData = () => {
     
     // Special handling for PAYROLL_RUN_REQUEST_APPROVAL and GLOBAL_PAYROLL_PROCESS_REQUEST_APPROVAL - use simple subject but add attributes manually
     if (row.actionType === 'PAYROLL_RUN_REQUEST_APPROVAL' || row.actionType === 'GLOBAL_PAYROLL_PROCESS_REQUEST_APPROVAL') {
-      // Keep the original subject format
+      subject = '$923,688.28 for Lopez Ltd (Jun 16–30)'
       attributes = {
         payPeriodStartDate: 'Jun 16, 2025',
         payPeriodEndDate: 'Jun 30, 2025',
