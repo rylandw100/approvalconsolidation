@@ -1,7 +1,6 @@
 {
-  "buildCommand": "cd approvalsproto && npm install && npm run build",
-  "outputDirectory": "approvalsproto/.next",
-  "installCommand": "cd approvalsproto && npm install",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "framework": "nextjs",
   "rootDirectory": "approvalsproto"
 }
