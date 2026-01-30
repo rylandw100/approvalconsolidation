@@ -1520,24 +1520,6 @@ export function ApprovalsGridWithSplit({
                               </div>
                             )}
                           </div>
-                          {/* View all tasks button - on reimbursements and approvals pages */}
-                          {(page === "reimbursements" || page === "approvals") && (
-                            <>
-                              <div className="h-8 w-px bg-gray-300 mx-3"></div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  if (onNavigateToPage) {
-                                    onNavigateToPage("inbox")
-                                  }
-                                }}
-                                className="h-[40px] px-3 gap-2 rounded-[8px]"
-                              >
-                                <span className="text-sm">View all tasks</span>
-                              </Button>
-                            </>
-                          )}
                         </>
                       )}
                       {page !== "inbox" && (
