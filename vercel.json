@@ -3,4 +3,5 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "rootDirectory": "approvalsproto"
+  // Root directory points to the Next.js app in approvalsproto subdirectory
 }
