@@ -1653,7 +1653,7 @@ export function ApprovalDetail({ selectedItem, selectedItems, onClearSelection, 
                 style={{ backgroundColor: 'white', display: 'block' }}
               />
             </div>
-          ) : page !== "approvals" && activeTab === "Overview" && (
+          ) : activeTab === "Overview" && (
             <div className="flex-1 overflow-y-auto min-h-0" style={{ backgroundColor: '#F9F7F6' }}>
               <div className="p-6 pb-20">
                 <div className={`${isSplitView ? "space-y-3" : "space-y-6"}`}>
