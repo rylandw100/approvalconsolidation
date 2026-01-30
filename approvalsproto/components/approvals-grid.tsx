@@ -3737,7 +3737,7 @@ export function ApprovalsGrid({
                               ) : (
                                 <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
                                   <span className="text-xs font-normal text-gray-700">
-                                    {approval.requestor.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                    {approval.requestor.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                                   </span>
                                 </div>
                               )}
@@ -3778,7 +3778,7 @@ export function ApprovalsGrid({
                               ) : (
                                 <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
                                   <span className="text-xs font-normal text-gray-700">
-                                    {approval.requestor.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                    {approval.requestor.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                                   </span>
                                 </div>
                               )}
