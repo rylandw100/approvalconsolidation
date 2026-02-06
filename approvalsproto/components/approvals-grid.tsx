@@ -3385,7 +3385,7 @@ export function ApprovalsGrid({
                   <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Vendor</div>
                   <button
                     onClick={() => {
-                      if (onSortChange && page === "inbox") {
+                      if (onSortChange) {
                         const currentSort = typeof sortBy === "object" ? sortBy : { column: "requestedOn" as const, direction: "asc" as const }
                         onSortChange({
                           column: "amount",
@@ -3397,7 +3397,7 @@ export function ApprovalsGrid({
                     style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}
                   >
                     Amount
-                    {page === "inbox" && typeof sortBy === "object" && sortBy.column === "amount" && (
+                    {typeof sortBy === "object" && sortBy.column === "amount" && (
                       sortBy.direction === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
                     )}
                   </button>
