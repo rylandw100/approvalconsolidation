@@ -22,6 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState<string>("pending")
   const [approvalsTab, setApprovalsTab] = useState<"requests" | "policies">("requests")
   const [reimbursementsTab, setReimbursementsTab] = useState<"requests">("requests")
+  const [reimbursementOption, setReimbursementOption] = useState<"opt1" | "opt2" | "opt3">("opt1")
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   const [adminMode, setAdminMode] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
@@ -458,6 +459,38 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                       <h1 className="rippling-text-2xl text-foreground">Reimbursements</h1>
+                      <div className="flex items-center gap-2 border border-border rounded-[8px] p-1 bg-white">
+                        <button
+                          onClick={() => setReimbursementOption("opt1")}
+                          className={`px-3 py-1.5 text-sm rounded-[6px] transition-colors ${
+                            reimbursementOption === "opt1"
+                              ? "bg-primary text-primary-foreground"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          Opt. 1
+                        </button>
+                        <button
+                          onClick={() => setReimbursementOption("opt2")}
+                          className={`px-3 py-1.5 text-sm rounded-[6px] transition-colors ${
+                            reimbursementOption === "opt2"
+                              ? "bg-primary text-primary-foreground"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          Opt. 2
+                        </button>
+                        <button
+                          onClick={() => setReimbursementOption("opt3")}
+                          className={`px-3 py-1.5 text-sm rounded-[6px] transition-colors ${
+                            reimbursementOption === "opt3"
+                              ? "bg-primary text-primary-foreground"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          Opt. 3
+                        </button>
+                      </div>
                     </div>
                     <Button 
                       className="rippling-btn-primary"
@@ -541,6 +574,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       setSelectedCategory("All")
                     }
                   }}
+                  reimbursementOption={reimbursementOption}
                 />
               </div>
             </div>

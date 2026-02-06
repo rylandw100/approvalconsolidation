@@ -75,6 +75,7 @@ interface ApprovalsGridProps {
   externalFilters?: Filter[]
   onFiltersChange?: (filters: Filter[]) => void
   onNavigateToPage?: (page: "tasks" | "inbox" | "reimbursements" | "approvals") => void
+  reimbursementOption?: "opt1" | "opt2" | "opt3"
 }
 
 export function ApprovalsGrid({
@@ -132,7 +133,8 @@ export function ApprovalsGrid({
   moreActionsRef,
   externalFilters,
   onFiltersChange,
-  onNavigateToPage
+  onNavigateToPage,
+  reimbursementOption = "opt1"
 }: ApprovalsGridProps) {
   // Helper function to get display category name
   const getDisplayCategory = (category: string) => {
@@ -3140,7 +3142,43 @@ export function ApprovalsGrid({
               </div>
             )}
             {/* Table Header */}
-            <div className={`grid ${getGridCols(activeGroupBy !== "none" ? activeGroupBy : "none", viewMode, activeTab)} gap-4 pr-6 bg-white border-b border-border flex-shrink-0 ${viewMode === undefined ? 'border-t border-l border-r border-gray-200 rounded-t-[16px]' : viewMode !== undefined ? 'border-t border-l border-r border-gray-200 rounded-t-[16px]' : ''}`} style={{ height: '40px' }}>
+            <div className={`grid ${(() => {
+              // For reimbursements Opt. 1, use a comprehensive grid template that includes all possible columns
+              // This ensures all columns fit, and we'll make it horizontally scrollable if needed
+              if (viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt1" && activeGroupBy === "none") {
+                // Use fixed max widths to prevent columns from growing: Checkbox + Requested on + Requested by + Vendor + Amount + Purchase Date + Category + Due date + Attributes + Actions
+                // Increased widths for requested on, requested by, vendor, amount, purchase date, category
+                return 'grid-cols-[40px_minmax(50px,120px)_minmax(80px,160px)_minmax(50px,120px)_minmax(45px,100px)_minmax(60px,130px)_minmax(80px,150px)_minmax(80px,120px)_80px_140px]'
+              }
+              // For reimbursements Opt. 2, use a specific grid template that includes purchase date (without task type)
+              if (viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt2" && activeGroupBy === "none" && activeTab !== "reviewed" && activeTab !== "snoozed" && activeTab !== "created" && activeTab !== "all") {
+                // Standard reimbursements grid with purchase date: Checkbox + Requested on + Requested by + Details (reduced) + Purchase Date (same width as Requested on) + Due date + Attributes + Actions
+                return 'grid-cols-[40px_minmax(80px,130px)_minmax(120px,180px)_minmax(180px,1fr)_minmax(80px,130px)_minmax(80px,120px)_100px_140px]'
+              }
+              let baseCols = getGridCols(activeGroupBy !== "none" ? activeGroupBy : "none", viewMode, activeTab)
+              if (viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt2") {
+                // Remove task type column (100px) - it appears after Requested by and before Details
+                // Pattern: ...minmax(120px,180px)_100px_minmax(300px,1fr)...
+                baseCols = baseCols.replace('minmax(120px,180px)_100px_minmax(300px,1fr)', 'minmax(120px,180px)_minmax(300px,1fr)')
+                baseCols = baseCols.replace('minmax(80px,130px)_100px_minmax(300px,1fr)', 'minmax(80px,130px)_minmax(300px,1fr)')
+                // Add purchase date column: insert minmax(80px,130px) (same width as Requested on) between Details and Due date, and reduce Details width
+                if (baseCols.includes('minmax(300px,1fr)_minmax(80px,120px)')) {
+                  baseCols = baseCols.replace('minmax(300px,1fr)_minmax(80px,120px)', 'minmax(180px,1fr)_minmax(80px,130px)_minmax(80px,120px)')
+                } else {
+                  // Fallback: insert after Details and reduce Details width
+                  const detailsIndex = baseCols.indexOf('minmax(300px,1fr)')
+                  if (detailsIndex !== -1) {
+                    const afterDetails = baseCols.substring(detailsIndex + 'minmax(300px,1fr)'.length)
+                    const nextUnderscore = afterDetails.indexOf('_')
+                    if (nextUnderscore !== -1) {
+                      const nextCol = afterDetails.substring(0, nextUnderscore + 1)
+                      baseCols = baseCols.replace(`minmax(300px,1fr)${nextCol}`, `minmax(180px,1fr)_minmax(80px,130px)${nextCol}`)
+                    }
+                  }
+                }
+              }
+              return baseCols
+            })()} gap-4 pr-6 bg-white border-b border-border flex-shrink-0 ${viewMode === undefined ? 'border-t border-l border-r border-gray-200 rounded-t-[16px]' : viewMode !== undefined ? 'border-t border-l border-r border-gray-200 rounded-t-[16px]' : ''}`} style={{ height: '40px' }}>
               {viewMode === "full-width" ? (
                 <div className="flex items-center justify-center">
                   <PebbleCheckbox
@@ -3341,25 +3379,59 @@ export function ApprovalsGrid({
                   )}
                 </>
               )}
-              <button
-                onClick={() => {
-                  if (onSortChange && page === "inbox") {
-                    const currentSort = typeof sortBy === "object" ? sortBy : { column: "requestedOn" as const, direction: "asc" as const }
-                    onSortChange({
-                      column: "taskType",
-                      direction: currentSort.column === "taskType" && currentSort.direction === "asc" ? "desc" : "asc"
-                    })
-                  }
-                }}
-                className="flex items-center gap-1 hover:text-foreground transition-colors"
-                style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}
-              >
-                Task type
-                {page === "inbox" && typeof sortBy === "object" && sortBy.column === "taskType" && (
-                  sortBy.direction === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                )}
-              </button>
+              {viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt1" ? (
+                <>
+                  {/* Opt. 1 columns: Vendor, Amount, Purchase Date, Category */}
+                  <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Vendor</div>
+                  <button
+                    onClick={() => {
+                      if (onSortChange && page === "inbox") {
+                        const currentSort = typeof sortBy === "object" ? sortBy : { column: "requestedOn" as const, direction: "asc" as const }
+                        onSortChange({
+                          column: "amount",
+                          direction: currentSort.column === "amount" && currentSort.direction === "asc" ? "desc" : "asc"
+                        })
+                      }
+                    }}
+                    className="flex items-center gap-1 hover:text-foreground transition-colors"
+                    style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}
+                  >
+                    Amount
+                    {page === "inbox" && typeof sortBy === "object" && sortBy.column === "amount" && (
+                      sortBy.direction === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                    )}
+                  </button>
+                  <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Purchase Date</div>
+                  <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Category</div>
+                </>
+              ) : (
+                <>
+              {!(page === "reimbursements" && reimbursementOption === "opt2") && (
+                <button
+                  onClick={() => {
+                    if (onSortChange && page === "inbox") {
+                      const currentSort = typeof sortBy === "object" ? sortBy : { column: "requestedOn" as const, direction: "asc" as const }
+                      onSortChange({
+                        column: "taskType",
+                        direction: currentSort.column === "taskType" && currentSort.direction === "asc" ? "desc" : "asc"
+                      })
+                    }
+                  }}
+                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                  style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}
+                >
+                  Task type
+                  {page === "inbox" && typeof sortBy === "object" && sortBy.column === "taskType" && (
+                    sortBy.direction === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                  )}
+                </button>
+              )}
               <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Details</div>
+                </>
+              )}
+              {viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt2" && (
+                <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Purchase Date</div>
+              )}
               {viewMode === "full-width" && activeTab === "snoozed" && (
                 <button
                   onClick={() => {
@@ -3416,7 +3488,7 @@ export function ApprovalsGrid({
             </div>
 
             {/* Table Rows - Scrollable container */}
-            <div className={`flex-1 min-h-0 overflow-y-auto bg-white ${viewMode === undefined ? 'border-l border-r border-b border-gray-200 rounded-b-[16px]' : viewMode !== undefined ? 'border-l border-r border-b border-gray-200 rounded-b-[16px]' : ''}`}>
+            <div className={`flex-1 min-h-0 overflow-y-auto ${viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt1" ? 'overflow-x-auto' : ''} bg-white ${viewMode === undefined ? 'border-l border-r border-b border-gray-200 rounded-b-[16px]' : viewMode !== undefined ? 'border-l border-r border-b border-gray-200 rounded-b-[16px]' : ''}`}>
               <div className="divide-y divide-border">
               {sortedApprovals.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 px-6">
@@ -3453,7 +3525,37 @@ export function ApprovalsGrid({
                     return (
                       <div
                         key={`group-${item.key}`}
-                        className={`grid ${getGridCols(activeGroupBy !== "none" ? activeGroupBy : "none", viewMode, activeTab)} gap-4 pr-6 transition-colors cursor-pointer border-b border-gray-200`}
+                      className={`grid ${(() => {
+                          // For reimbursements Opt. 1, use a flexible grid template that fills available width
+                          if (viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt1" && activeGroupBy === "none") {
+                            // Use fixed max widths to prevent columns from growing - same as header to ensure column alignment
+                            // Increased widths for requested on, requested by, vendor, amount, purchase date, category
+                            return 'grid-cols-[40px_minmax(50px,120px)_minmax(80px,160px)_minmax(50px,120px)_minmax(45px,100px)_minmax(60px,130px)_minmax(80px,150px)_minmax(80px,120px)_80px_140px]'
+                          }
+                          let baseCols = getGridCols(activeGroupBy !== "none" ? activeGroupBy : "none", viewMode, activeTab)
+                          if (viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt2") {
+                            // Remove task type column (100px) - it appears after Requested by and before Details
+                            // Pattern: ...minmax(120px,180px)_100px_minmax(300px,1fr)...
+                            baseCols = baseCols.replace('minmax(120px,180px)_100px_minmax(300px,1fr)', 'minmax(120px,180px)_minmax(300px,1fr)')
+                            baseCols = baseCols.replace('minmax(80px,130px)_100px_minmax(300px,1fr)', 'minmax(80px,130px)_minmax(300px,1fr)')
+                            // Add purchase date column: insert minmax(80px,130px) (same width as Requested on) between Details and Due date
+                            if (baseCols.includes('minmax(300px,1fr)_minmax(80px,120px)')) {
+                              baseCols = baseCols.replace('minmax(300px,1fr)_minmax(80px,120px)', 'minmax(300px,1fr)_minmax(80px,130px)_minmax(80px,120px)')
+                            } else {
+                              // Fallback: try to insert after Details (minmax(300px,1fr)) and before next column
+                              const detailsIndex = baseCols.indexOf('minmax(300px,1fr)')
+                              if (detailsIndex !== -1) {
+                                const afterDetails = baseCols.substring(detailsIndex + 'minmax(300px,1fr)'.length)
+                                const nextUnderscore = afterDetails.indexOf('_')
+                                if (nextUnderscore !== -1) {
+                                  const nextCol = afterDetails.substring(0, nextUnderscore + 1)
+                                  baseCols = baseCols.replace(`minmax(300px,1fr)${nextCol}`, `minmax(300px,1fr)_minmax(80px,130px)${nextCol}`)
+                                }
+                              }
+                            }
+                          }
+                          return baseCols
+                        })()} gap-4 pr-6 transition-colors cursor-pointer border-b border-gray-200`}
                         style={{ height: '48px', backgroundColor: (isGroupHovered && activeTab !== "reviewed") ? '#E5E5E5' : '#F9FAFB' }}
                         onClick={(e) => {
                           // Only toggle if clicking on the row itself, not on actions
@@ -3492,8 +3594,26 @@ export function ApprovalsGrid({
                             <div></div>
                           </>
                         )}
+                        {viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt1" ? (
+                          <>
+                            {/* For opt1: Vendor, Amount, Purchase Date, Category (4 columns) */}
                         <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                          </>
+                        ) : (
+                          <>
                         {viewMode === "full-width" && <div></div>}
+                            {viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt2" && <div></div>}
+                          </>
+                        )}
+                        {/* Conditional columns: Snoozed until, Status, Due date */}
+                        {viewMode === "full-width" && activeTab === "snoozed" && <div></div>}
+                        {viewMode === "full-width" && activeTab === "reviewed" && <div></div>}
+                        {viewMode === "full-width" && activeTab !== "reviewed" && activeTab !== "snoozed" && activeTab !== "created" && activeTab !== "all" && <div></div>}
+                        {viewMode === "full-width" && (activeTab === "all" || activeTab === "created") && <div></div>}
+                        {viewMode === "full-width" && (activeTab === "all" || activeTab === "created") && <div></div>}
                         <div></div>
                         {/* Actions */}
                         <div className="flex items-center gap-1 justify-end min-h-[28px]">
@@ -3657,7 +3777,41 @@ export function ApprovalsGrid({
                           setHoveredItem(null)
                         }
                       }}
-                      className={`grid ${getGridCols(activeGroupBy !== "none" ? activeGroupBy : "none", viewMode, activeTab)} gap-4 pr-6 transition-colors cursor-pointer ${isLastItem ? 'border-b border-gray-200' : ''}`}
+                      className={`grid ${(() => {
+                        // For reimbursements Opt. 1, use a flexible grid template that fills available width
+                        if (viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt1" && activeGroupBy === "none") {
+                          // Use fixed max widths to prevent columns from growing - same as header to ensure column alignment
+                          // Increased widths for requested on, requested by, vendor, amount, purchase date, category
+                          return 'grid-cols-[40px_minmax(50px,120px)_minmax(80px,160px)_minmax(50px,120px)_minmax(45px,100px)_minmax(60px,130px)_minmax(80px,150px)_minmax(80px,120px)_80px_140px]'
+                        }
+                        // For reimbursements Opt. 2, use a specific grid template that includes purchase date (without task type)
+                        if (viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt2" && activeGroupBy === "none" && activeTab !== "reviewed" && activeTab !== "snoozed" && activeTab !== "created" && activeTab !== "all") {
+                          return 'grid-cols-[40px_minmax(80px,130px)_minmax(120px,180px)_minmax(180px,1fr)_minmax(80px,130px)_minmax(80px,120px)_100px_140px]'
+                        }
+                        let baseCols = getGridCols(activeGroupBy !== "none" ? activeGroupBy : "none", viewMode, activeTab)
+                        if (viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt2") {
+                          // Remove task type column (100px) - it appears after Requested by and before Details
+                          // Pattern: ...minmax(120px,180px)_100px_minmax(300px,1fr)...
+                          baseCols = baseCols.replace('minmax(120px,180px)_100px_minmax(300px,1fr)', 'minmax(120px,180px)_minmax(300px,1fr)')
+                          baseCols = baseCols.replace('minmax(80px,130px)_100px_minmax(300px,1fr)', 'minmax(80px,130px)_minmax(300px,1fr)')
+                          // Add purchase date column: insert minmax(80px,130px) (same width as Requested on) between Details and Due date, and reduce Details width
+                          if (baseCols.includes('minmax(300px,1fr)_minmax(80px,120px)')) {
+                            baseCols = baseCols.replace('minmax(300px,1fr)_minmax(80px,120px)', 'minmax(180px,1fr)_minmax(80px,130px)_minmax(80px,120px)')
+                          } else {
+                            // Fallback: insert after Details and reduce Details width
+                            const detailsIndex = baseCols.indexOf('minmax(300px,1fr)')
+                            if (detailsIndex !== -1) {
+                              const afterDetails = baseCols.substring(detailsIndex + 'minmax(300px,1fr)'.length)
+                              const nextUnderscore = afterDetails.indexOf('_')
+                              if (nextUnderscore !== -1) {
+                                const nextCol = afterDetails.substring(0, nextUnderscore + 1)
+                                baseCols = baseCols.replace(`minmax(300px,1fr)${nextCol}`, `minmax(180px,1fr)_minmax(80px,130px)${nextCol}`)
+                              }
+                            }
+                          }
+                        }
+                        return baseCols
+                      })()} gap-4 pr-6 transition-colors cursor-pointer ${isLastItem ? 'border-b border-gray-200' : ''}`}
                       style={{ height: '48px', backgroundColor: hoveredItem === approval.id ? '#E5E5E5' : ((approval as any).isCritical ? '#FFF2EE' : 'white') }}
                     >
                       {/* Bulk Selection */}
@@ -3775,19 +3929,57 @@ export function ApprovalsGrid({
                         </>
                       )}
 
-                      {/* Task type */}
-                      {activeGroupBy !== "type" && (
-                        <div className="flex items-center min-w-0">
-                          <div className="flex flex-col min-w-0 flex-1">
-                            <TruncatedText text={getTaskTypeDisplayName(approval)} className="text-gray-900 truncate" style={{ fontWeight: 400, fontSize: '13px', lineHeight: '16px' }} />
-                            {approval.taskType && (
-                              <TruncatedText text={approval.taskType} className="text-gray-500 truncate" style={{ fontWeight: 400, fontSize: '11px', lineHeight: '13px' }} />
-                            )}
+                      {viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt1" ? (
+                        <>
+                          {/* Opt. 1 columns: Vendor, Amount, Purchase Date, Category */}
+                          <div className="flex items-center min-w-0">
+                            <TruncatedText 
+                              text={(approval as any).vendor?.name || '--'}
+                              className="text-gray-600 truncate" 
+                              style={{ fontSize: '14px', fontWeight: 400, fontFamily: '"Basel Grotesk"', lineHeight: '48px' }}
+                            />
                           </div>
-                        </div>
-                      )}
-                      {activeGroupBy === "type" && (
-                        <div className="flex items-center min-w-0"></div>
+                          <div className="flex items-center min-w-0">
+                            <TruncatedText 
+                              text={(approval as any).amount || '--'}
+                              className="text-gray-600 truncate" 
+                              style={{ fontSize: '14px', fontWeight: 400, fontFamily: '"Basel Grotesk"', lineHeight: '48px' }}
+                            />
+                          </div>
+                          <div className="flex items-center min-w-0">
+                            <TruncatedText 
+                              text={(approval as any).purchaseDate || '--'}
+                              className="text-gray-600 truncate" 
+                              style={{ fontSize: '14px', fontWeight: 400, fontFamily: '"Basel Grotesk"', lineHeight: '48px' }}
+                            />
+                          </div>
+                          <div className="flex items-center min-w-0">
+                            <TruncatedText 
+                              text={(approval as any).expenseCategory || '--'}
+                              className="text-gray-600 truncate" 
+                              style={{ fontSize: '14px', fontWeight: 400, fontFamily: '"Basel Grotesk"', lineHeight: '48px' }}
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                      {/* Task type - Hidden for opt2 */}
+                      {!(page === "reimbursements" && reimbursementOption === "opt2") && (
+                        <>
+                          {activeGroupBy !== "type" && (
+                            <div className="flex items-center min-w-0">
+                              <div className="flex flex-col min-w-0 flex-1">
+                                <TruncatedText text={getTaskTypeDisplayName(approval)} className="text-gray-900 truncate" style={{ fontWeight: 400, fontSize: '13px', lineHeight: '16px' }} />
+                                {approval.taskType && (
+                                  <TruncatedText text={approval.taskType} className="text-gray-500 truncate" style={{ fontWeight: 400, fontSize: '11px', lineHeight: '13px' }} />
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {activeGroupBy === "type" && (
+                            <div className="flex items-center min-w-0"></div>
+                          )}
+                        </>
                       )}
 
                       {/* Details */}
@@ -3819,6 +4011,19 @@ export function ApprovalsGrid({
                           </span>
                         )}
                       </div>
+                        </>
+                      )}
+
+                      {/* Purchase Date - Only in full-width view for reimbursements Opt. 2 */}
+                      {viewMode === "full-width" && page === "reimbursements" && reimbursementOption === "opt2" && (
+                        <div className="flex items-center min-w-0">
+                          <TruncatedText 
+                            text={(approval as any).purchaseDate || '--'}
+                            className="text-gray-600 truncate" 
+                            style={{ fontSize: '14px', fontWeight: 400, fontFamily: '"Basel Grotesk"', lineHeight: '48px' }}
+                          />
+                        </div>
+                      )}
 
                       {/* Snoozed until - Only in full-width view for snoozed tab */}
                       {viewMode === "full-width" && activeTab === "snoozed" && (

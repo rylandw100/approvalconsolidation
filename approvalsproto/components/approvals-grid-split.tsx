@@ -50,6 +50,7 @@ interface ApprovalsGridWithSplitProps {
   onViewModeChange?: (mode: "full-width" | "split") => void
   onNavigateToPage?: (page: "tasks" | "inbox" | "reimbursements" | "approvals") => void
   onExpandedChange?: (isExpanded: boolean) => void
+  reimbursementOption?: "opt1" | "opt2" | "opt3"
 }
 
 export function ApprovalsGridWithSplit({
@@ -89,7 +90,8 @@ export function ApprovalsGridWithSplit({
   onCategoryCountsChange,
   onViewModeChange: externalOnViewModeChange,
   onNavigateToPage,
-  onExpandedChange
+  onExpandedChange,
+  reimbursementOption = "opt1"
 }: ApprovalsGridWithSplitProps) {
   const [viewMode, setViewMode] = useState<"full-width" | "split">("full-width")
   const [aiPanelRequestContext, setAIPanelRequestContext] = useState<any>(null)
@@ -861,6 +863,7 @@ export function ApprovalsGridWithSplit({
                 externalFilters={activeFilters}
                 onFiltersChange={setActiveFilters}
                 onNavigateToPage={onNavigateToPage}
+                reimbursementOption={reimbursementOption}
               />
             </div>
           )}
