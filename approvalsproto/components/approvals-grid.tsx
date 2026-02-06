@@ -3383,24 +3383,7 @@ export function ApprovalsGrid({
                 <>
                   {/* Opt. 1 columns: Vendor, Amount, Purchase Date, Category */}
                   <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Vendor</div>
-                  <button
-                    onClick={() => {
-                      if (onSortChange) {
-                        const currentSort = typeof sortBy === "object" ? sortBy : { column: "requestedOn" as const, direction: "asc" as const }
-                        onSortChange({
-                          column: "amount",
-                          direction: currentSort.column === "amount" && currentSort.direction === "asc" ? "desc" : "asc"
-                        })
-                      }
-                    }}
-                    className="flex items-center gap-1 hover:text-foreground transition-colors"
-                    style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}
-                  >
-                    Amount
-                    {typeof sortBy === "object" && sortBy.column === "amount" && (
-                      sortBy.direction === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                    )}
-                  </button>
+                  <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Amount</div>
                   <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Purchase Date</div>
                   <div className="flex items-center" style={{ fontWeight: 400, fontSize: '14px', lineHeight: '17px', fontFamily: '"Basel Grotesk"', letterSpacing: '0px', textAlign: 'left', color: 'rgb(75 85 99 / var(--tw-text-opacity, 1))' }}>Category</div>
                 </>
