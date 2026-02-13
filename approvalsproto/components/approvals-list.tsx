@@ -141,7 +141,15 @@ export function ApprovalsList({
       'SCHEDULING_COVER_OFFER': 'Cover shift',
       'SCHEDULING_DROP_SHIFT': 'Shift drop',
       'SCHEDULING_SWAP_OFFER': 'Shift swap',
-      'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM': 'Shift confirmation'
+      'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM': 'Shift confirmation',
+      'SCHEDULING_SHIFT_PUBLISH': 'Publish shift',
+      'SCHEDULING_EMPLOYEE_SHIFT_PUBLISH': 'Publish shift',
+      'CHAT_CHANNEL_CREATION': 'Channel creation',
+      'CHAT_CHANNEL_GROUPS_UPDATE': 'Channel update',
+      'INVOICE_SUBMISSION': 'Invoice submission',
+      'CUSTOM_OBJECT_DATA_ROW_RUN_BUSINESS_PROCESS': 'Business process',
+      'FORECASTED_ATTRITION_HEADCOUNT': 'Forecasted attrition',
+      'REFRESH_SCHEDULE_CHANGE': 'Refresh schedule'
     }
     
     if (actionType && actionTypeMap[actionType]) {

@@ -384,7 +384,7 @@ export const mapAppToCategory = (app: string): string => {
     'Global payroll': 'Approvals - Payroll',
     'Headcount': 'Approvals - Headcount',
     'HRIS': 'Approvals - HR Management',
-    'IT automations': 'Approvals - IT Automations',
+    'IT automations': 'Approvals - IT',
     'Payroll': 'Approvals - Payroll',
     'Permissions': 'Approvals - Permissions',
     'Procurement': 'Approvals - Procurement',
@@ -396,7 +396,9 @@ export const mapAppToCategory = (app: string): string => {
     'Time off': 'Approvals - Time Off',
     'Travel': 'Approvals - Travel',
     'Variable Comp': 'Approvals - Variable Compensation',
-    'Benefits': 'Approvals - Benefits'
+    'Benefits': 'Approvals - Benefits',
+    'Chat': 'Approvals - Chat',
+    'Tranformations': 'Approvals - Transformations'
   }
   return categoryMap[app] || `Approvals - ${app}`
 }
@@ -446,7 +448,15 @@ export const csvData = [
   { app: 'Travel', actionType: 'FLIGHT_APPROVAL_REQUEST', detailsCopy: 'Flight for "{trip name}" ({flight details})', example: 'Flight for "Team offsite" (LGA->SFO, Roundtrip). Details: LGA->SFO, Roundtrip. Amount: $450.00. Trip date: Dec 15, 2025. Selection: Economy class' },
   { app: 'Travel', actionType: 'FLIGHT_PRE_APPROVAL_REQUEST', detailsCopy: 'Flight for "{trip name}" ({flight details}) — pre-approval required', example: 'Flight for "Team offsite" (LGA->SFO, Roundtrip) -- pre-approval required' },
   { app: 'Variable Comp', actionType: 'VARIABLE_COMPENSATION_PAYEE_PAYOUT_V1', detailsCopy: '{payout amount} to {payee} ({period})', example: '$101,200 payout for jessica Garcia (December 01 -15). Amount: $101,200. Person: Jessica Garcia. Period: December 01 -15' },
-  { app: 'Benefits', actionType: 'BENEFITS_CARRIER_REQUEST', detailsCopy: 'Add {Carrier} ({impacted employees } - {Cost} - {Effective date})', example: 'Add Blue Shield of CA (143 employees - 96K/mo - Effective Mar 1)' }
+  { app: 'Benefits', actionType: 'BENEFITS_CARRIER_REQUEST', detailsCopy: 'Add {Carrier} ({impacted employees } - {Cost} - {Effective date})', example: 'Add Blue Shield of CA (143 employees - 96K/mo - Effective Mar 1)' },
+  { app: 'Chat', actionType: 'CHAT_CHANNEL_CREATION', detailsCopy: '{Request type} with {proposed members}', example: 'Create direct message with Michael Johnson' },
+  { app: 'Chat', actionType: 'CHAT_CHANNEL_GROUPS_UPDATE', detailsCopy: 'Update {channel name} membership ({change})', example: 'Update Small channel membership (Add 3 people)' },
+  { app: 'Contractor hub', actionType: 'INVOICE_SUBMISSION', detailsCopy: 'Invoice {invoice #} for {Vendor name} - {Amount}', example: 'Invoice (3453) for MJ Agency - $5000' },
+  { app: 'Custom objects', actionType: 'CUSTOM_OBJECT_DATA_ROW_RUN_BUSINESS_PROCESS', detailsCopy: 'Update {record name}: {field} → {new value}', example: 'Update record _1 name to new_record' },
+  { app: 'Headcount', actionType: 'FORECASTED_ATTRITION_HEADCOUNT', detailsCopy: 'Add {x} headcount for {title} ({level}) in {department} (Forecasted attrition)', example: 'Add 1 headcount for Product Design Lead (L7) in Design (Forecasted attrition)' },
+  { app: 'Scheduling', actionType: 'SCHEDULING_SHIFT_PUBLISH', detailsCopy: 'Publish shift ({Shift})', example: 'Publish shift (Dec 10, 08:15 AM - 05:00 PM PST)' },
+  { app: 'Scheduling', actionType: 'SCHEDULING_EMPLOYEE_SHIFT_PUBLISH', detailsCopy: 'Publish shift for {Employee} ({Shift})', example: 'Publish shift for John Smith (Dec 10, 08:15 AM - 05:00 PM PST)' },
+  { app: 'Tranformations', actionType: 'REFRESH_SCHEDULE_CHANGE', detailsCopy: '{status} refresh for {Tranformation name} source data', example: 'Enable refresh for "transformation_name" source data' }
 ]
 
 // Generate approval data from CSV
@@ -462,10 +472,21 @@ export const generateApprovalData = () => {
     if (row.actionType === 'APPS_UPDATE_ACCESS_REQUEST') {
       subject = "Update Sarah Johnson's access to 5 apps"
       attributes = {
-        impactedEmployee: 'Sarah Johnson',
-        apps: 'Slack, Figma, Notion, Asana, Jira',
-        reason: 'Role change',
-        effectiveDate: 'Jan 15, 2025'
+        'Impacted employee': 'Sarah Johnson',
+        'Apps': 'Slack, Figma, Notion, Asana, Jira',
+        'Reason': 'Role change',
+        'Effective date': 'Jan 15, 2025'
+      }
+    }
+    
+    // Special handling for APPS_REQUEST - use simple subject but add attributes manually
+    if (row.actionType === 'APPS_REQUEST') {
+      subject = "Update Michael Johnson's access to 3 apps"
+      attributes = {
+        'Impacted employee': 'Michael Johnson',
+        'Apps': 'Slack, Figma, Notion',
+        'Reason': 'Role change',
+        'Effective date': 'Jan 15, 2025'
       }
     }
     
@@ -473,12 +494,12 @@ export const generateApprovalData = () => {
     if (row.actionType === 'HIRE') {
       subject = 'Hire Michael Johnson (Product Designer)'
       attributes = {
-        employee: 'Michael Johnson',
-        startDate: 'Jan 15, 2025',
-        title: 'Product Designer',
-        department: 'Design',
-        level: 'L5',
-        compensation: '$120,000'
+        'Impacted employee': 'Michael Johnson',
+        'Start date': 'Jan 15, 2025',
+        'Title': 'Product Designer',
+        'Department': 'Design',
+        'Level': 'L5',
+        'Compensation': '$120,000'
       }
     }
     
@@ -487,12 +508,12 @@ export const generateApprovalData = () => {
       subject = 'Hire Sarah Kim (Senior Product Designer)'
       // Manually set the attributes for this specific request
       attributes = {
-        employee: 'Sarah Kim',
-        startDate: 'Jan 15, 2025',
-        title: 'Senior Product Designer',
-        department: 'Design',
-        level: 'L6',
-        compensation: '$150,000'
+        'Employee': 'Sarah Kim',
+        'Start date': 'Jan 15, 2025',
+        'Title': 'Senior Product Designer',
+        'Department': 'Design',
+        'Level': 'L6',
+        'Compensation': '$150,000'
       }
     }
     
@@ -500,12 +521,12 @@ export const generateApprovalData = () => {
     if (row.actionType === 'TERMINATE') {
       subject = 'Terminate Michael Johnson (Product Designer)'
       attributes = {
-        employee: 'Michael Johnson',
-        title: 'Product Designer',
-        terminationType: 'Voluntary',
-        terminationReason: 'Resignation',
-        startDate: 'Jan 1, 2024',
-        endDate: 'Jan 15, 2025'
+        'Impacted employee': 'Michael Johnson',
+        'Title': 'Product Designer',
+        'Termination type': 'Voluntary',
+        'Termination reason': 'Resignation',
+        'Start date': 'Jan 1, 2024',
+        'End date': 'Jan 15, 2025'
       }
     }
     
@@ -513,10 +534,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'PERSONAL_INFO_CHANGES') {
       subject = 'Update Michael Johnson\'s address -> 123 Main Street'
       attributes = {
-        employee: 'Michael Johnson',
-        change: 'Address updated from 456 Oak Avenue to 123 Main Street',
-        reason: 'Relocation',
-        changeEffectDate: 'Jan 15, 2025'
+        'Impacted employee': 'Michael Johnson',
+        'Change': 'Address updated from 456 Oak Avenue to 123 Main Street',
+        'Reason': 'Relocation',
+        'Change effect date': 'Jan 15, 2025'
       }
     }
     
@@ -524,9 +545,9 @@ export const generateApprovalData = () => {
     if (row.actionType === 'GRANT_DEVELOPER_PERMISSION') {
       subject = 'Grant developer permissions for Michael Johnson'
       attributes = {
-        employee: 'Michael Johnson',
-        permissionRequested: 'Developer access to production database',
-        reason: 'New team member needs database access for development work'
+        'Impacted employee': 'Michael Johnson',
+        'Permission requested': 'Developer access to production database',
+        'Reason': 'New team member needs database access for development work'
       }
     }
     
@@ -534,10 +555,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'PROCUREMENT_REQUEST') {
       subject = 'Figma license purchase ($1,000)'
       attributes = {
-        amount: '$1,000',
-        vendor: 'Figma',
-        paymentMethod: 'Credit Card',
-        memo: 'Annual license renewal for design team'
+        'Amount': '$1,000',
+        'Vendor': 'Figma',
+        'Payment method': 'Credit Card',
+        'Memo': 'Annual license renewal for design team'
       }
     }
     
@@ -545,10 +566,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'ATS_OFFER_LETTER_REQUEST') {
       subject = 'Offer letter for Michael Johnson (Product Designer)'
       attributes = {
-        applicant: 'Michael Johnson',
-        jobRequisition: 'Senior Product Designer',
-        employmentType: 'Full-time',
-        jobTitle: 'Product Designer'
+        'Application': 'APP-12345',
+        'Job req name': 'Senior Product Designer',
+        'Employment type': 'Full-time',
+        'Job title': 'Product Designer'
       }
     }
     
@@ -556,10 +577,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'ATS_JOB_REQUISITION_CREATE_REQUEST') {
       subject = 'Create requisition "Senior Product Designer" (Design)'
       attributes = {
-        jobRequisition: 'Senior Product Designer',
-        hiringManager: 'Sarah Johnson',
-        employmentType: 'Full-time',
-        jobTitle: 'Senior Product Designer'
+        'Job req name': 'Senior Product Designer',
+        'Hiring manager': 'Sarah Johnson',
+        'Employment type': 'Full-time',
+        'Job title': 'Senior Product Designer'
       }
     }
     
@@ -567,10 +588,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'ATS_JOB_REQUISITION_EDIT_REQUEST') {
       subject = 'Update requisition "Senior Product Designer": recruiter -> Michael Johnson and 2 other changes'
       attributes = {
-        jobRequisition: 'Senior Product Designer',
-        hiringManager: 'Sarah Johnson',
-        change: 'Recruiter updated from John Smith to Michael Johnson, Department changed from Design to Product',
-        changedBy: 'Sarah Johnson'
+        'Job req name': 'Senior Product Designer',
+        'Hiring manager': 'Sarah Johnson',
+        'Change': 'Recruiter updated from John Smith to Michael Johnson, Department changed from Design to Product',
+        'Changed by': 'Sarah Johnson'
       }
     }
     
@@ -578,10 +599,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'RPASS_REQUEST') {
       subject = 'Grant access for Michael Johnson (5 RPass items)'
       attributes = {
-        employee: 'Michael Johnson',
-        items: 'Slack, Figma, Notion, Asana, Jira',
-        reason: 'New team member onboarding',
-        effectiveDate: 'Jan 15, 2025'
+        'Impacted employee': 'Michael Johnson',
+        'Items': 'Slack, Figma, Notion, Asana, Jira',
+        'Reason': 'New team member onboarding',
+        'Effective date': 'Jan 15, 2025'
       }
     }
     
@@ -589,10 +610,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'SCHEDULING_CHANGE_REQUEST') {
       subject = 'Change shift to Dec 10, 08:15 AM - 05:00 PM PST'
       attributes = {
-        person: 'Michael Johnson',
-        schedule: 'Weekly schedule',
-        currentShift: 'Dec 9, 08:15 AM - 05:00 PM PST',
-        proposedShift: 'Dec 10, 08:15 AM - 05:00 PM PST'
+        'Person': 'Michael Johnson',
+        'Schedule': 'Weekly schedule',
+        'Current shift': 'Dec 9, 08:15 AM - 05:00 PM PST',
+        'Proposed shift': 'Dec 10, 08:15 AM - 05:00 PM PST'
       }
     }
     
@@ -600,10 +621,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'SCHEDULING_EDIT_SHIFT') {
       subject = 'Update shift location -> San Francisco (Dec 10, 08:15 AM - 05:00 PM PST)'
       attributes = {
-        person: 'Michael Johnson',
-        schedule: 'Weekly schedule',
-        shift: 'Dec 10, 08:15 AM - 05:00 PM PST',
-        change: 'Location updated from New York to San Francisco'
+        'Person': 'Michael Johnson',
+        'Schedule': 'Weekly schedule',
+        'Shift': 'Dec 10, 08:15 AM - 05:00 PM PST',
+        'Change': 'Location updated from New York to San Francisco'
       }
     }
     
@@ -611,9 +632,9 @@ export const generateApprovalData = () => {
     if (row.actionType === 'SCHEDULING_COVER_OFFER') {
       subject = 'Offer to cover Dec 10, 08:15 AM - 05:00 PM PST'
       attributes = {
-        person: 'Sarah Johnson',
-        schedule: 'Weekly schedule',
-        shift: 'Dec 10, 08:15 AM - 05:00 PM PST'
+        'Person': 'Sarah Johnson',
+        'Schedule': 'Weekly schedule',
+        'Shift': 'Dec 10, 08:15 AM - 05:00 PM PST'
       }
     }
     
@@ -621,9 +642,9 @@ export const generateApprovalData = () => {
     if (row.actionType === 'SCHEDULING_DROP_SHIFT') {
       subject = 'Drop shift (Dec 10, 08:15 AM - 05:00 PM PST)'
       attributes = {
-        person: 'Michael Johnson',
-        schedule: 'Weekly schedule',
-        shift: 'Dec 10, 08:15 AM - 05:00 PM PST'
+        'Person': 'Michael Johnson',
+        'Schedule': 'Weekly schedule',
+        'Shift': 'Dec 10, 08:15 AM - 05:00 PM PST'
       }
     }
     
@@ -631,10 +652,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'SCHEDULING_SWAP_OFFER') {
       subject = 'Swap Dec 10, 08:15 AM - 05:00 PM PST for Dec 11, 08:15 AM - 05:00 PM PST'
       attributes = {
-        person: 'Michael Johnson',
-        schedule: 'Weekly schedule',
-        currentShift: 'Dec 10, 08:15 AM - 05:00 PM PST',
-        proposedShift: 'Dec 11, 08:15 AM - 05:00 PM PST'
+        'Person': 'Michael Johnson',
+        'Schedule': 'Weekly schedule',
+        'Current shift': 'Dec 10, 08:15 AM - 05:00 PM PST',
+        'Proposed shift': 'Dec 11, 08:15 AM - 05:00 PM PST'
       }
     }
     
@@ -642,9 +663,9 @@ export const generateApprovalData = () => {
     if (row.actionType === 'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM') {
       subject = 'Confirm Michael Johnson working Dec 10, 08:15 AM - 05:00 PM PST'
       attributes = {
-        person: 'Michael Johnson',
-        schedule: 'Weekly schedule',
-        shift: 'Dec 10, 08:15 AM - 05:00 PM PST'
+        'Person': 'Michael Johnson',
+        'Schedule': 'Weekly schedule',
+        'Shift': 'Dec 10, 08:15 AM - 05:00 PM PST'
       }
     }
     
@@ -652,10 +673,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'TIME_ENTRY') {
       subject = '13.75 hours on Dec 10'
       attributes = {
-        person: 'Michael Johnson',
-        startTime: '8:00 AM',
-        endTime: '9:45 PM',
-        duration: '13.75 hours'
+        'Impacted employee': 'Michael Johnson',
+        'Start time': '8:00 AM',
+        'End time': '9:45 PM',
+        'Duration': '13.75 hours'
       }
     }
     
@@ -663,10 +684,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'LEAVE_REQUEST_APPROVAL') {
       subject = '2.00 vacation days (Dec 10 -11)'
       attributes = {
-        employee: 'Michael Johnson',
-        startDate: 'Dec 10, 2025',
-        endDate: 'Dec 11, 2025',
-        duration: '2.00 days'
+        'Impacted employee': 'Michael Johnson',
+        'Start date': 'Dec 10, 2025',
+        'End date': 'Dec 11, 2025',
+        'Duration': '2.00 days'
       }
     }
     
@@ -674,10 +695,21 @@ export const generateApprovalData = () => {
     if (row.actionType === 'FLIGHT_APPROVAL_REQUEST') {
       subject = 'Flight for "Team offsite" (LGA->SFO, Roundtrip)'
       attributes = {
-        details: 'LGA->SFO, Roundtrip',
-        amount: '$450.00',
-        tripDate: 'Dec 15, 2025',
-        selection: 'Economy class'
+        'Details': 'LGA->SFO, Roundtrip',
+        'Amount': '$450.00',
+        'Trip date': 'Dec 15, 2025',
+        'Selection': 'Economy class'
+      }
+    }
+    
+    // Special handling for FLIGHT_PRE_APPROVAL_REQUEST - use simple subject but add attributes manually
+    if (row.actionType === 'FLIGHT_PRE_APPROVAL_REQUEST') {
+      subject = 'Flight for "Team offsite" (LGA->SFO, Roundtrip) -- pre-approval required'
+      attributes = {
+        'Details': 'LGA->SFO, Roundtrip',
+        'Amount': '$450.00',
+        'Trip date': 'Dec 15, 2025',
+        'Selection': 'Economy class'
       }
     }
     
@@ -685,9 +717,9 @@ export const generateApprovalData = () => {
     if (row.actionType === 'VARIABLE_COMPENSATION_PAYEE_PAYOUT_V1') {
       subject = '$101,200 payout for jessica Garcia (December 01 -15)'
       attributes = {
-        amount: '$101,200',
-        person: 'Jessica Garcia',
-        period: 'December 01 -15'
+        'Amount': '$101,200',
+        'Person': 'Jessica Garcia',
+        'Period': 'December 01 -15'
       }
     }
     
@@ -695,15 +727,15 @@ export const generateApprovalData = () => {
     if (row.actionType === 'NEW_HEADCOUNT') {
       subject = 'Add 1 headcount for Product Design Lead (L7) in Design'
       attributes = {
-        numberOfNewHeadcount: '1',
-        annualizedCashImpact: '$150,000',
-        memo: 'New design team expansion',
-        headcountOwner: 'Sarah Johnson',
-        jobTitle: 'Product Design Lead',
-        workLocation: 'San Francisco, CA',
-        department: 'Design',
-        level: 'L7',
-        jobFamily: 'Design'
+        'Number of new headcount': '1',
+        'Annualized cash impact': '$150,000',
+        'Memo': 'New design team expansion',
+        'Headcount owner': 'Sarah Johnson',
+        'Title': 'Product Design Lead',
+        'Work location': 'San Francisco, CA',
+        'Department': 'Design',
+        'Level': 'L7',
+        'Job Family': 'Design'
       }
     }
     
@@ -711,9 +743,9 @@ export const generateApprovalData = () => {
     if (row.actionType === 'EDIT_HEADCOUNT') {
       subject = 'Update "new designer" (level -> L8 and 3 other changes'
       attributes = {
-        memo: 'Updated level requirement',
-        changedBy: 'John Smith',
-        change: 'Level updated from L7 to L8, Department changed from Design to Product'
+        'Memo': 'Updated level requirement',
+        'Changed by': 'John Smith',
+        'Change': 'Level updated from L7 to L8, Department changed from Design to Product'
       }
     }
     
@@ -721,10 +753,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'BACKFILL_HEADCOUNT') {
       subject = 'Backfill for Michael Johnson'
       attributes = {
-        previousEmployee: 'Sarah Johnson',
-        numberOfNewHeadcount: '1',
-        annualizedCashImpact: '$120,000',
-        memo: 'Replacing departed team member'
+        'Previous employee': 'Sarah Johnson',
+        'Number of new headcount': '1',
+        'Annualized cash impact': '$120,000',
+        'Memo': 'Replacing departed team member'
       }
     }
     
@@ -732,9 +764,9 @@ export const generateApprovalData = () => {
     if (row.actionType === 'CLOSE_HEADCOUNT') {
       subject = 'Close "new designer" requisition'
       attributes = {
-        memo: 'Position no longer needed',
-        closedBy: 'John Smith',
-        headcountOwner: 'Sarah Johnson'
+        'Memo': 'Position no longer needed',
+        'Closed by': 'John Smith',
+        'Headcount owner': 'Sarah Johnson'
       }
     }
     
@@ -742,9 +774,9 @@ export const generateApprovalData = () => {
     if (row.actionType === 'HEADCOUNT') {
       subject = 'Update "new designer" level to L8 and backfill for Michael Johnson'
       attributes = {
-        numberOfChanges: '2',
-        changedBy: 'John Smith',
-        memo: 'Combined headcount update and backfill request'
+        'Number of changes': '2',
+        'Changed by': 'John Smith',
+        'Memo': 'Combined headcount update and backfill request'
       }
     }
     
@@ -752,10 +784,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'TRANSITION') {
       subject = 'Update Michael Johnson\'s position -> Product Design Lead'
       attributes = {
-        employee: 'Michael Johnson',
-        change: 'Position updated from Product Designer to Product Design Lead',
-        reason: 'Promotion',
-        changeEffectDate: 'Jan 15, 2025'
+        'Impacted employee': 'Michael Johnson',
+        'Change': 'Position updated from Product Designer to Product Design Lead',
+        'Reason': 'Promotion',
+        'Change effect date': 'Jan 15, 2025'
       }
     }
     
@@ -763,10 +795,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'APP_ACCESS_REQUEST') {
       subject = 'Grant access to rippling-app-test.slack.com'
       attributes = {
-        impactedEmployee: 'Michael Johnson',
-        department: 'Engineering',
-        requestedResource: 'rippling-app-test.slack.com',
-        reason: 'New team member needs access'
+        'Impacted employee': 'Michael Johnson',
+        'Department': 'Engineering',
+        'Requested resource': 'rippling-app-test.slack.com',
+        'Reason': 'New team member needs access'
       }
     }
     
@@ -774,10 +806,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'APP_INSTALL_REQUEST') {
       subject = 'Grant Michael Johnson access to 3 apps'
       attributes = {
-        impactedEmployee: 'Michael Johnson',
-        apps: 'Slack, Figma, Notion',
-        reason: 'New team member onboarding',
-        effectiveDate: 'Jan 15, 2025'
+        'Impacted employee': 'Michael Johnson',
+        'Apps': 'Slack, Figma, Notion',
+        'Reason': 'New team member onboarding',
+        'Effective date': 'Jan 15, 2025'
       }
     }
     
@@ -785,11 +817,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'BANKING_NEW_PAYMENT_REQUEST') {
       subject = 'Transfer $100 to Michael Johnson'
       attributes = {
-        amount: '$100',
-        recipient: 'Michael Johnson',
-        currency: 'USD',
-        transferType: 'ACH',
-        reason: 'Vendor payment'
+        'Amount': '$100',
+        'Currency': 'USD',
+        'Transfer type': 'ACH',
+        'Reason': 'Vendor payment'
       }
     }
     
@@ -797,12 +828,12 @@ export const generateApprovalData = () => {
     if (row.actionType === 'CONTRACT_CREATION') {
       subject = 'Create a contract for Michael Johnson (Product Designer)'
       attributes = {
-        contractor: 'Michael Johnson',
-        contractType: 'Independent Contractor',
-        department: 'Design',
-        totalContractAmount: '$50,000',
-        startDate: 'Jan 1, 2025',
-        endDate: 'Dec 31, 2025'
+        'Contractor': 'Michael Johnson',
+        'Contract type': 'Independent Contractor',
+        'Department': 'Design',
+        'Total contract amount': '$50,000',
+        'Start date': 'Jan 1, 2025',
+        'End date': 'Dec 31, 2025'
       }
     }
     
@@ -810,9 +841,9 @@ export const generateApprovalData = () => {
     if (row.actionType === 'CONTRACT_NEGOTIATION') {
       subject = 'Approve proposed contract changes for Michael Johnson (Product Designer)'
       attributes = {
-        contractor: 'Michael Johnson',
-        contractType: 'Independent Contractor',
-        requestedChange: 'Increase hourly rate from $100 to $120'
+        'Impacted contractor': 'Michael Johnson',
+        'Contract type': 'Independent Contractor',
+        'Change': 'Increase hourly rate from $100 to $120'
       }
     }
     
@@ -820,11 +851,11 @@ export const generateApprovalData = () => {
     if (row.actionType === 'DEVICES_REQUEST') {
       subject = 'Assign and order device for Michael Johnson'
       attributes = {
-        employee: 'Michael Johnson',
-        newPurchases: 'MacBook Pro 16", Magic Mouse',
-        itemCost: '$2,500',
-        reason: 'New hire equipment',
-        effectiveDate: 'Jan 15, 2025'
+        'Impacted employee': 'Michael Johnson',
+        'New purchases': 'MacBook Pro 16", Magic Mouse',
+        'Item cost': '$2,500',
+        'Reason': 'New hire equipment',
+        'Effect date': 'Jan 15, 2025'
       }
     }
     
@@ -832,10 +863,10 @@ export const generateApprovalData = () => {
     if (row.actionType === 'PAYROLL_RUN_REQUEST_APPROVAL' || row.actionType === 'GLOBAL_PAYROLL_PROCESS_REQUEST_APPROVAL') {
       subject = '$923,688.28 for Lopez Ltd (Jun 16–30)'
       attributes = {
-        payPeriodStartDate: 'Jun 16, 2025',
-        payPeriodEndDate: 'Jun 30, 2025',
-        takeActionDeadline: 'Jul 2, 2025',
-        payRunMemo: 'Monthly payroll processing'
+        'Pay period: start date': 'Jun 16, 2025',
+        'Pay period: end date': 'Jun 30, 2025',
+        'Take action deadline': 'Jul 2, 2025',
+        'Pay run memo': 'Monthly payroll processing'
       }
     }
     
@@ -843,11 +874,115 @@ export const generateApprovalData = () => {
     if (row.actionType === 'ATS_DECISION_TO_HIRE_REQUEST') {
       subject = 'Decide to hire Michael Johnson (Product Designer)'
       attributes = {
-        candidateName: 'Michael Johnson',
-        position: 'Product Designer',
-        application: 'APP-12345',
-        jobReqName: 'Senior Product Designer',
-        employmentType: 'Full-time'
+        'Application': 'APP-12345',
+        'Job req name': 'Senior Product Designer',
+        'Employment type': 'Full-time',
+        'Job title': 'Product Designer'
+      }
+    }
+    
+    // Special handling for CHAT_CHANNEL_CREATION - use simple subject but add attributes manually
+    if (row.actionType === 'CHAT_CHANNEL_CREATION') {
+      subject = 'Create direct message with Michael Johnson'
+      attributes = {
+        'Channel type': 'Direct message',
+        'Proposed members': 'Michael Johnson',
+        'Request note': 'New team communication channel'
+      }
+    }
+    
+    // Special handling for CHAT_CHANNEL_GROUPS_UPDATE - use simple subject but add attributes manually
+    if (row.actionType === 'CHAT_CHANNEL_GROUPS_UPDATE') {
+      subject = 'Update Small channel membership (Add 3 people)'
+      attributes = {
+        'Channel name': 'Small channel',
+        'Channel type': 'Group',
+        'Groups added': '3 people',
+        'Groups removed': '',
+        'Request note': 'Update channel membership'
+      }
+    }
+    
+    // Special handling for INVOICE_SUBMISSION - use simple subject but add attributes manually
+    if (row.actionType === 'INVOICE_SUBMISSION') {
+      subject = 'Invoice (3453) for MJ Agency - $5000'
+      attributes = {
+        'Invoice number': '3453',
+        'Vendor name': 'MJ Agency',
+        'Amount': '$5000'
+      }
+    }
+    
+    // Special handling for FORECASTED_ATTRITION_HEADCOUNT - use simple subject but add attributes manually
+    if (row.actionType === 'FORECASTED_ATTRITION_HEADCOUNT') {
+      subject = 'Add 1 headcount for Product Design Lead (L7) in Design (Forecasted attrition)'
+      attributes = {
+        'Number of new headcount': '1',
+        'Annualized cash impact': '$150,000',
+        'Memo': 'Forecasted attrition replacement',
+        'Headcount owner': 'Sarah Johnson',
+        'Title': 'Product Design Lead',
+        'Work location': 'San Francisco, CA',
+        'Department': 'Design',
+        'Level': 'L7',
+        'Job Family': 'Design'
+      }
+    }
+    
+    // Special handling for SCHEDULING_SHIFT_PUBLISH - use simple subject but add attributes manually
+    if (row.actionType === 'SCHEDULING_SHIFT_PUBLISH') {
+      subject = 'Publish shift (Dec 10, 08:15 AM - 05:00 PM PST)'
+      attributes = {
+        'Schedule': 'Weekly schedule',
+        'Shift': 'Dec 10, 08:15 AM - 05:00 PM PST',
+        'Location': 'San Francisco Office',
+        'Department': 'Operations',
+        'Number of employees': '12'
+      }
+    }
+    
+    // Special handling for SCHEDULING_EMPLOYEE_SHIFT_PUBLISH - use simple subject but add attributes manually
+    if (row.actionType === 'SCHEDULING_EMPLOYEE_SHIFT_PUBLISH') {
+      subject = 'Publish shift for John Smith (Dec 10, 08:15 AM - 05:00 PM PST)'
+      attributes = {
+        'Employee': 'John Smith',
+        'Schedule': 'Weekly schedule',
+        'Shift': 'Dec 10, 08:15 AM - 05:00 PM PST',
+        'Location': 'San Francisco Office',
+        'Department': 'Operations'
+      }
+    }
+    
+    // Special handling for SPEND_REQUEST - use simple subject but add attributes manually
+    if (row.actionType === 'SPEND_REQUEST') {
+      subject = 'Reimburse $37.95 (Uber)'
+      attributes = {
+        'Amount': '$37.95',
+        'Vendor': 'Uber',
+        'Purchaser': 'Michael Johnson',
+        'Purchase date': 'Dec 10, 2025'
+      }
+    }
+    
+    // Special handling for BENEFITS_CARRIER_REQUEST - use simple subject but add attributes manually
+    if (row.actionType === 'BENEFITS_CARRIER_REQUEST') {
+      subject = 'Add Blue Shield of CA (143 employees - 96K/mo - Effective Mar 1)'
+      attributes = {
+        'Carrier': 'Blue Shield of CA',
+        'Country': 'United States',
+        'Impacted employees': '143',
+        'Cost': '96K/mo',
+        'Effective date': 'Mar 1'
+      }
+    }
+    
+    // Special handling for REFRESH_SCHEDULE_CHANGE - use simple subject but add attributes manually
+    if (row.actionType === 'REFRESH_SCHEDULE_CHANGE') {
+      subject = 'Enable refresh for "transformation_name" source data'
+      attributes = {
+        'Transformation name': 'transformation_name',
+        'Change': 'Enable refresh',
+        'Frequency': 'Daily'
       }
     }
     
@@ -859,15 +994,77 @@ export const generateApprovalData = () => {
     const requestedOn = requestedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     const timeAgo = daysAgo === 0 ? 'just now' : daysAgo === 1 ? '1 day ago' : `${daysAgo} days ago`
     
-    // Generate due date (7-14 days from requested date, or 3 business days for specific action types, or no due date)
+    // Generate due date based on CSV specifications
     let dueDate: string | undefined
-    if (row.actionType === 'APPS_UPDATE_ACCESS_REQUEST' || row.actionType === 'HIRE_WITH_DETAILS') {
-      dueDate = generateDueDate(row.actionType, 3, true) // 3 business days
-    } else if (row.actionType === 'CUSTOM_OBJECT_DATA_ROW_DELETE_NO_DUE_DATE') {
+    const actionType = row.actionType
+    
+    // High urgency: 1 business day
+    if (actionType === 'BANKING_NEW_PAYMENT_REQUEST' || 
+        actionType === 'GLOBAL_PAYROLL_PROCESS_REQUEST_APPROVAL' ||
+        actionType === 'PAYROLL_RUN_REQUEST_APPROVAL' ||
+        actionType === 'TIME_ENTRY' ||
+        actionType === 'LEAVE_REQUEST_APPROVAL' ||
+        actionType === 'VARIABLE_COMPENSATION_PAYEE_PAYOUT_V1') {
+      dueDate = generateDueDate(actionType, 1, true) // 1 business day
+    }
+    // Medium-high urgency: 3 business days
+    else if (actionType === 'APPS_REQUEST' ||
+             actionType === 'APP_INSTALL_REQUEST' ||
+             actionType === 'BENEFITS_CARRIER_REQUEST' ||
+             actionType === 'BACKFILL_HEADCOUNT' ||
+             actionType === 'NEW_HEADCOUNT' ||
+             actionType === 'EDIT_HEADCOUNT' ||
+             actionType === 'CLOSE_HEADCOUNT' ||
+             actionType === 'FORECASTED_ATTRITION_HEADCOUNT' ||
+             actionType === 'HEADCOUNT' ||
+             actionType === 'TRANSITION' ||
+             actionType === 'HIRE' ||
+             actionType === 'HIRE_WITH_DETAILS' ||
+             actionType === 'TERMINATE' ||
+             actionType === 'PERSONAL_INFO_CHANGES' ||
+             actionType === 'GRANT_DEVELOPER_PERMISSION' ||
+             actionType === 'PROCUREMENT_REQUEST' ||
+             actionType === 'ATS_OFFER_LETTER_REQUEST' ||
+             actionType === 'ATS_JOB_REQUISITION_CREATE_REQUEST' ||
+             actionType === 'ATS_JOB_REQUISITION_EDIT_REQUEST' ||
+             actionType === 'ATS_DECISION_TO_HIRE_REQUEST' ||
+             actionType === 'RPASS_REQUEST' ||
+             actionType === 'SPEND_REQUEST' ||
+             actionType === 'DEVICES_REQUEST' ||
+             actionType === 'APPS_UPDATE_ACCESS_REQUEST') {
+      dueDate = generateDueDate(actionType, 3, true) // 3 business days
+    }
+    // Medium/operational cadence: 5 business days
+    else if (actionType === 'CONTRACT_CREATION' ||
+             actionType === 'INVOICE_SUBMISSION' ||
+             actionType === 'CONTRACT_NEGOTIATION' ||
+             actionType === 'APP_ACCESS_REQUEST' ||
+             actionType === 'SCHEDULING_CHANGE_REQUEST' ||
+             actionType === 'SCHEDULING_EDIT_SHIFT' ||
+             actionType === 'SCHEDULING_COVER_OFFER' ||
+             actionType === 'SCHEDULING_DROP_SHIFT' ||
+             actionType === 'SCHEDULING_SWAP_OFFER' ||
+             actionType === 'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM' ||
+             actionType === 'SCHEDULING_SHIFT_PUBLISH' ||
+             actionType === 'SCHEDULING_EMPLOYEE_SHIFT_PUBLISH' ||
+             actionType === 'REFRESH_SCHEDULE_CHANGE' ||
+             actionType === 'FLIGHT_APPROVAL_REQUEST' ||
+             actionType === 'FLIGHT_PRE_APPROVAL_REQUEST') {
+      dueDate = generateDueDate(actionType, 5, true) // 5 business days
+    }
+    // Low urgency: no due date
+    else if (actionType === 'CHAT_CHANNEL_CREATION' ||
+             actionType === 'CHAT_CHANNEL_GROUPS_UPDATE' ||
+             actionType === 'CUSTOM_OBJECT_DATA_ROW_DELETE' ||
+             actionType === 'CUSTOM_OBJECT_DATA_ROW_DELETE_NO_DUE_DATE' ||
+             actionType === 'CUSTOM_OBJECT_DATA_ROW_CREATE' ||
+             actionType === 'CUSTOM_OBJECT_DATA_ROW_UPDATE' ||
+             actionType === 'CUSTOM_OBJECT_DATA_ROW_RUN_BUSINESS_PROCESS') {
       dueDate = undefined // No due date
-    } else {
-      const dueDateDays = 7 + (index % 7)
-      dueDate = generateDueDate(row.actionType, dueDateDays)
+    }
+    // Default fallback (shouldn't happen, but just in case)
+    else {
+      dueDate = generateDueDate(actionType, 7, true) // Default to 7 business days
     }
     
     // Base approval object
@@ -879,10 +1076,10 @@ export const generateApprovalData = () => {
       time: timeAgo,
       requestedOn,
       // Ensure specific requests are always pending so they're visible
-      status: (row.actionType === 'BACKFILL_HEADCOUNT' || row.actionType === 'CLOSE_HEADCOUNT' || row.actionType === 'GRANT_DEVELOPER_PERMISSION' || row.actionType === 'ATS_JOB_REQUISITION_CREATE_REQUEST' || row.actionType === 'SCHEDULING_COVER_OFFER' || row.actionType === 'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM' || row.actionType === 'VARIABLE_COMPENSATION_PAYEE_PAYOUT_V1' || row.actionType === 'BANKING_NEW_PAYMENT_REQUEST' || row.actionType === 'CUSTOM_OBJECT_DATA_ROW_UPDATE') 
+      status: (row.actionType === 'BACKFILL_HEADCOUNT' || row.actionType === 'CLOSE_HEADCOUNT' || row.actionType === 'GRANT_DEVELOPER_PERMISSION' || row.actionType === 'ATS_JOB_REQUISITION_CREATE_REQUEST' || row.actionType === 'SCHEDULING_COVER_OFFER' || row.actionType === 'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM' || row.actionType === 'VARIABLE_COMPENSATION_PAYEE_PAYOUT_V1' || row.actionType === 'BANKING_NEW_PAYMENT_REQUEST' || row.actionType === 'CUSTOM_OBJECT_DATA_ROW_UPDATE' || row.actionType === 'CHAT_CHANNEL_GROUPS_UPDATE' || row.actionType === 'SPEND_REQUEST' || row.actionType === 'TIME_ENTRY' || row.actionType === 'LEAVE_REQUEST_APPROVAL') 
         ? 'pending' 
         : (index % 3 === 0 ? 'reviewed' : 'pending'), // Mix of pending and reviewed
-      itemStatus: (row.actionType === 'BACKFILL_HEADCOUNT' || row.actionType === 'CLOSE_HEADCOUNT' || row.actionType === 'GRANT_DEVELOPER_PERMISSION' || row.actionType === 'ATS_JOB_REQUISITION_CREATE_REQUEST' || row.actionType === 'SCHEDULING_COVER_OFFER' || row.actionType === 'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM' || row.actionType === 'VARIABLE_COMPENSATION_PAYEE_PAYOUT_V1' || row.actionType === 'BANKING_NEW_PAYMENT_REQUEST' || row.actionType === 'CUSTOM_OBJECT_DATA_ROW_UPDATE')
+      itemStatus: (row.actionType === 'BACKFILL_HEADCOUNT' || row.actionType === 'CLOSE_HEADCOUNT' || row.actionType === 'GRANT_DEVELOPER_PERMISSION' || row.actionType === 'ATS_JOB_REQUISITION_CREATE_REQUEST' || row.actionType === 'SCHEDULING_COVER_OFFER' || row.actionType === 'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM' || row.actionType === 'VARIABLE_COMPENSATION_PAYEE_PAYOUT_V1' || row.actionType === 'BANKING_NEW_PAYMENT_REQUEST' || row.actionType === 'CUSTOM_OBJECT_DATA_ROW_UPDATE' || row.actionType === 'CHAT_CHANNEL_GROUPS_UPDATE' || row.actionType === 'SPEND_REQUEST' || row.actionType === 'TIME_ENTRY' || row.actionType === 'LEAVE_REQUEST_APPROVAL')
         ? 'Pending'
         : (index % 3 === 0 ? (index % 6 === 0 ? 'Approved' : 'Rejected') : 'Pending'),
       isSnoozed: false,
@@ -903,13 +1100,14 @@ export const generateApprovalData = () => {
     
     // Add category-specific fields based on action type
     if (row.app === 'Spend' || row.actionType === 'SPEND_REQUEST') {
-      approval.vendor = { name: attributes.vendor || 'Vendor' }
-      approval.amount = attributes.amount || '$0.00'
+      approval.vendor = { name: attributes['Vendor'] || attributes.vendor || 'Vendor' }
+      approval.amount = attributes['Amount'] || attributes.amount || '$0.00'
       approval.entity = 'Acme Corp'
       approval.purchaseDate = requestedOn
       approval.expenseCategory = 'Business Expense'
       approval.reason = 'Business expense'
-      approval.changes = { current: '$0', new: attributes.amount || '$0.00', amount: attributes.amount || '$0.00' }
+      const amountValue = attributes['Amount'] || attributes.amount || '$0.00'
+      approval.changes = { current: '$0', new: amountValue, amount: amountValue }
     } else if (row.app === 'HRIS' || row.app === 'Headcount') {
       approval.employee = {
         name: attributes.impactedEmployee || attributes.impactedPerson || 'Employee',

@@ -56,7 +56,8 @@ export function ExpansionPane({ selectedCategory, onCategoryChange, categoryCoun
     ? (() => {
         // Get all unique task types from categoryCounts (excluding standard categories)
         // Note: "Payroll" is removed from standardCategories because it's an actual task type that should appear in quick filters
-        const standardCategories = ["All", "Approvals", "Tasks", "HR Management", "Time and Attendance", "Reimbursements", "Documents", "Training", "Miscellaneous", "Critical"]
+        // "Time and Attendance" and "Reimbursements" should appear in quick filters
+        const standardCategories = ["All", "Approvals", "Tasks", "HR Management", "Documents", "Training", "Miscellaneous", "Critical"]
         const taskTypes = Object.keys(categoryCounts || {})
           .filter(key => !standardCategories.includes(key) && categoryCounts[key] > 0)
           .sort() // Sort alphabetically
@@ -104,7 +105,8 @@ export function ExpansionPane({ selectedCategory, onCategoryChange, categoryCoun
     // For approvals page, "All" should be the sum of all task type counts (quick filters)
     if (page === "approvals") {
       // Get all task types from categoryCounts (excluding standard categories)
-      const standardCategories = ["All", "Approvals", "Tasks", "HR Management", "Time and Attendance", "Reimbursements", "Documents", "Training", "Miscellaneous", "Critical"]
+      // "Time and Attendance" and "Reimbursements" should be included in quick filters
+      const standardCategories = ["All", "Approvals", "Tasks", "HR Management", "Documents", "Training", "Miscellaneous", "Critical"]
       const taskTypes = Object.keys(categoryCounts || {})
         .filter(key => !standardCategories.includes(key) && categoryCounts[key] > 0)
       

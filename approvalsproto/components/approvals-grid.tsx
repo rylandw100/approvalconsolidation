@@ -213,7 +213,15 @@ export function ApprovalsGrid({
       'SCHEDULING_COVER_OFFER': 'Cover shift',
       'SCHEDULING_DROP_SHIFT': 'Shift drop',
       'SCHEDULING_SWAP_OFFER': 'Shift swap',
-      'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM': 'Shift confirmation'
+      'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM': 'Shift confirmation',
+      'SCHEDULING_SHIFT_PUBLISH': 'Publish shift',
+      'SCHEDULING_EMPLOYEE_SHIFT_PUBLISH': 'Publish shift',
+      'CHAT_CHANNEL_CREATION': 'Channel creation',
+      'CHAT_CHANNEL_GROUPS_UPDATE': 'Channel update',
+      'INVOICE_SUBMISSION': 'Invoice submission',
+      'CUSTOM_OBJECT_DATA_ROW_RUN_BUSINESS_PROCESS': 'Business process',
+      'FORECASTED_ATTRITION_HEADCOUNT': 'Forecasted attrition',
+      'REFRESH_SCHEDULE_CHANGE': 'Refresh schedule'
     }
     
     if (actionType && actionTypeMap[actionType]) {
@@ -1334,9 +1342,9 @@ export function ApprovalsGrid({
     if (selectedCategory === "HR Management" || selectedCategory === "Reimbursements" || selectedCategory === "Time and Attendance") {
       return approval.category === `Approvals - ${selectedCategory}` || approval.category === selectedCategory
     }
-    // For approvals page, check if selectedCategory is a task type
-    if (page === "approvals" && (approval as any).taskType) {
-      return (approval as any).taskType === selectedCategory
+    // For approvals page, check if selectedCategory is a task type (use display category name)
+    if (page === "approvals" && approval.category.startsWith("Approvals -")) {
+      return getDisplayCategory(approval.category) === selectedCategory
     }
     return approval.category === selectedCategory
   }
@@ -1679,9 +1687,10 @@ export function ApprovalsGrid({
     if (page === "approvals") {
       const taskTypeCounts: Record<string, number> = {}
       approvals.forEach(a => {
-        const taskType = (a as any).taskType
-        if (taskType) {
-          taskTypeCounts[taskType] = (taskTypeCounts[taskType] || 0) + 1
+        // Use display category name instead of taskType to show "IT" instead of "IT automations"
+        const displayCategory = getDisplayCategory(a.category)
+        if (displayCategory && a.category.startsWith("Approvals -")) {
+          taskTypeCounts[displayCategory] = (taskTypeCounts[displayCategory] || 0) + 1
         }
       })
       // Add task type counts to the counts object
@@ -1809,7 +1818,8 @@ export function ApprovalsGrid({
 
 
   const getDetailsTooltipContent = (approval: any) => {
-    if ((approval.category === "HR Management" || approval.category === "Approvals - HR Management") && approval.changes) {
+    // TERMINATE requests should use attributes handler, not HR Management handler
+    if ((approval.category === "HR Management" || approval.category === "Approvals - HR Management") && approval.changes && approval.actionType !== 'TERMINATE') {
       const fieldName = approval.fieldName || 'Change'
       const changeValue = approval.changes.current && approval.changes.new
         ? `${approval.changes.current} -> ${approval.changes.new}`
@@ -2213,7 +2223,86 @@ export function ApprovalsGrid({
         endTime: 'End time',
         duration: 'Duration',
         tripDate: 'Trip date',
-        selection: 'Selection'
+        selection: 'Selection',
+        'Impacted employee': 'Impacted employee',
+        'Title': 'Title',
+        'Termination type': 'Termination type',
+        'Termination reason': 'Termination reason',
+        'Start date': 'Start date',
+        'End date': 'End date',
+        'Channel type': 'Channel type',
+        'Proposed members': 'Proposed members',
+        'Request note': 'Request note',
+        'Channel name': 'Channel name',
+        'Groups added': 'Groups added',
+        'Groups removed': 'Groups removed',
+        'Apps': 'Apps',
+        'Reason': 'Reason',
+        'Effective date': 'Effective date',
+        'Amount': 'Amount',
+        'Currency': 'Currency',
+        'Transfer type': 'Transfer type',
+        'Carrier': 'Carrier',
+        'Country': 'Country',
+        'Impacted employees': 'Impacted employees',
+        'Cost': 'Cost',
+        'Contractor': 'Contractor',
+        'Contract type': 'Contract type',
+        'Department': 'Department',
+        'Total contract amount': 'Total contract amount',
+        'Impacted contractor': 'Impacted contractor',
+        'Change': 'Change',
+        'Invoice number': 'Invoice number',
+        'Vendor name': 'Vendor name',
+        'New purchases': 'New purchases',
+        'Item cost': 'Item cost',
+        'Effect date': 'Effect date',
+        'Compensation': 'Compensation',
+        'Level': 'Level',
+        'Change effect date': 'Change effect date',
+        'Permission requested': 'Permission requested',
+        'Payment method': 'Payment method',
+        'Memo': 'Memo',
+        'Application': 'Application',
+        'Job req name': 'Job req name',
+        'Employment type': 'Employment type',
+        'Job title': 'Job title',
+        'Hiring manager': 'Hiring manager',
+        'Changed by': 'Changed by',
+        'Items': 'Items',
+        'Person': 'Person',
+        'Schedule': 'Schedule',
+        'Current shift': 'Current shift',
+        'Proposed shift': 'Proposed shift',
+        'Shift': 'Shift',
+        'Start time': 'Start time',
+        'End time': 'End time',
+        'Duration': 'Duration',
+        'Details': 'Details',
+        'Trip date': 'Trip date',
+        'Selection': 'Selection',
+        'Period': 'Period',
+        'Number of new headcount': 'Number of new headcount',
+        'Annualized cash impact': 'Annualized cash impact',
+        'Headcount owner': 'Headcount owner',
+        'Work location': 'Work location',
+        'Job Family': 'Job Family',
+        'Previous employee': 'Previous employee',
+        'Closed by': 'Closed by',
+        'Number of changes': 'Number of changes',
+        'Requested resource': 'Requested resource',
+        'Employee': 'Employee',
+        'Purchaser': 'Purchaser',
+        'Purchase date': 'Purchase date',
+        'Vendor': 'Vendor',
+        'Transformation name': 'Transformation name',
+        'Frequency': 'Frequency',
+        'Pay period: start date': 'Pay period: start date',
+        'Pay period: end date': 'Pay period: end date',
+        'Take action deadline': 'Take action deadline',
+        'Pay run memo': 'Pay run memo',
+        'Location': 'Location',
+        'Number of employees': 'Number of employees'
       }
       
       const attributeEntries = Object.entries(attributes).filter(([_, value]) => value !== undefined && value !== null && value !== '')
@@ -3954,7 +4043,7 @@ export function ApprovalsGrid({
                               <div className="flex flex-col min-w-0 flex-1">
                                 <TruncatedText text={getTaskTypeDisplayName(approval)} className="text-gray-900 truncate" style={{ fontWeight: 400, fontSize: '13px', lineHeight: '16px' }} />
                                 {approval.taskType && (
-                                  <TruncatedText text={approval.taskType} className="text-gray-500 truncate" style={{ fontWeight: 400, fontSize: '11px', lineHeight: '13px' }} />
+                                  <TruncatedText text={getDisplayCategory(approval.category)} className="text-gray-500 truncate" style={{ fontWeight: 400, fontSize: '11px', lineHeight: '13px' }} />
                                 )}
                               </div>
                             </div>
