@@ -215,7 +215,7 @@ export function ApprovalsGrid({
       'SCHEDULING_SWAP_OFFER': 'Shift swap',
       'SCHEDULING_EMPLOYEE_SHIFT_CONFIRM': 'Shift confirmation',
       'SCHEDULING_SHIFT_PUBLISH': 'Publish shift',
-      'SCHEDULING_EMPLOYEE_SHIFT_PUBLISH': 'Publish shift',
+      'SCHEDULING_EMPLOYEE_SHIFT_PUBLISH': 'Publish employee shift',
       'CHAT_CHANNEL_CREATION': 'Channel creation',
       'CHAT_CHANNEL_GROUPS_UPDATE': 'Channel update',
       'INVOICE_SUBMISSION': 'Invoice submission',

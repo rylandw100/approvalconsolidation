@@ -947,9 +947,7 @@ export const generateApprovalData = () => {
       attributes = {
         'Employee': 'John Smith',
         'Schedule': 'Weekly schedule',
-        'Shift': 'Dec 10, 08:15 AM - 05:00 PM PST',
-        'Location': 'San Francisco Office',
-        'Department': 'Operations'
+        'Shift': 'Dec 10, 08:15 AM - 05:00 PM PST'
       }
     }
     
